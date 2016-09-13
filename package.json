@@ -1,7 +1,7 @@
 {
-  "name": "luau",
+  "name": "lynx-parser",
   "version": "0.1.0",
-  "description": "A light, extensible user agent for the browser and beyond.",
+  "description": "A simple parser for application/lynx+json documents.",
   "main": "lib/index.js",
   "scripts": {
     "test": "mocha test --compilers js:babel-register --require babel-polyfill",
@@ -10,18 +10,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/johnhowes/luau.git"
+    "url": "git+https://github.com/johnhowes/lynx-parser.git"
   },
   "keywords": [
-    "lynx",
-    "user-agent"
+    "lynx"
   ],
   "author": "John Howes",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/johnhowes/luau/issues"
+    "url": "https://github.com/johnhowes/lynx-parser/issues"
   },
-  "homepage": "https://github.com/johnhowes/luau#readme",
+  "homepage": "https://github.com/johnhowes/lynx-parser#readme",
   "devDependencies": {
     "babel-cli": "^6.11.4",
     "babel-plugin-transform-async-to-generator": "^6.8.0",
@@ -35,6 +34,7 @@
     "mocha": "^2.5.3"
   },
   "dependencies": {
+    "content-type": "^1.0.2",
     "events": "^1.1.1"
   }
 }

@@ -1,85 +1,47 @@
-/* jshint node: true */
-/* jshint esversion: 6 */
-"use strict";
+const util = require("util");
+const reservedKeys = [ "spec", "value", "realm", "base" ];
+const contentType = require("content-type");
 
-const Emitter = require("events");
-
-class Request {
-  constructor(url, options) {
-    this.url = url;
+exports.parse = async (content, options) => {
+  async function prepareNode(source, templateSpec) {
+    var node = {};
     
-    if (options && options.type) {
-      this.content = {
-        type: options.type,
-        data: options.data
-      };
-    } 
+    var spec = source.spec || templateSpec;
+    if (typeof spec === "string") {
+      if (!options.resolveSpecURL) throw new Error("You must provide a resolveSpecURL function as an option.");
+      node.spec = await options.resolveSpecURL(spec);
+    } else {
+      node.spec = spec;
+    }
     
-    if (options && options.enctype) this.enctype = options.enctype;
-    if (options && options.formData) this.formData = options.formData;
+    node.spec.hints = node.spec.hints.map(hint => typeof hint === "string" ? { name: hint } : hint);
     
-    this.options = options;
-    this.headers = {};
+    var value = source.value || source;
     
-    if (options && options.headers) {
-      for (var p in options.headers) {
-        this.set(p, options.headers[p]);
+    if (util.isArray(value)) node.value = [];
+    else if (util.isObject(value)) node.value = {};
+    else node.value = value;
+    
+    if (util.isObject(value)) {
+      for (let p in value) {
+        if (reservedKeys.indexOf(p) !== -1) continue;
+        
+        let spec = util.isArray(node.spec.children) ? 
+          node.spec.children.find(item => item.name === p) : 
+          node.spec.children;
+          
+        if (spec) node.value[p] = await prepareNode(value[p], spec);
+        else node.value[p] = value[p];
       }
     }
-  }
-  
-  set(header, value) {
-    this.headers[header.toLowerCase()] = value;
-  }
-  
-  get(header) {
-    return this.headers[header.toLowerCase()];
-  }
-}
-
-class Context {
-  constructor(request) {
-    this.request = request;
-  }
-}
-
-function createNext(fn, ctx, next) {
-  return () => fn(ctx, next);
-}
-
-function compose(middleware) {
-  return function (ctx, next) {
-    if (!next) next = async () => {};
-    if (middleware.length === 0) return next();
-
-    var i = middleware.length;
-  
-    while (i--) {
-      next = createNext(middleware[i], ctx, next);
-    }
     
-    return next();
-  };
-}
-
-module.exports = class Application extends Emitter {
-  constructor() {
-    super();
-    this.middleware = [];
+    return node;
   }
   
-  request(url, content) {
-    var ctx = new Context(new Request(url, content));
-    
-    return compose(this.middleware)(ctx).then(() => {
-      return ctx;
-    }).catch(err => {
-      this.emit("error", err);
-    });
-  }
-  
-  use(fn) {
-    this.middleware.push(fn);
-    return this;
-  }
+  var type = contentType.parse(options && options.type || "application/lynx+json");
+  var source = JSON.parse(content);
+  var doc = await prepareNode(source);
+  doc.realm = source.realm || type.parameters.realm;
+  doc.base = source.base || type.parameters.base || options && options.location;
+  return doc;
 };
