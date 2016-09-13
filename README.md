@@ -166,17 +166,17 @@ Usage
 ```js
 const LYNX = require("lynx-parser");
 
-var lynx = {
+var input = {
   "value": "Hello, World!",
   "spec": {
     "hints": [ "text" ]
   }
 };
 
-var doc = await LYNX.parse(JSON.stringify(lynx));
+var output = await LYNX.parse(JSON.stringify(input));
 
-console.log(doc.value === "Hello, World!");
-console.log(doc.spec.hints[0].name === "text");
+console.log(output.value === "Hello, World!");
+console.log(output.spec.hints[0].name === "text");
 
 ```
 
@@ -188,7 +188,7 @@ accepting a URL and returning a promise for an object.
 ```js
 const LYNX = require("lynx-parser");
 
-var lynx = {
+var input = {
   "value": "Hello, World!",
   "spec": "http://example.com/specs/greeting"
 };
@@ -201,10 +201,10 @@ var options = {
   }
 };
 
-var doc = await LYNX.parse(JSON.stringify(lynx), options);
+var output = await LYNX.parse(JSON.stringify(input), options);
 
-console.log(doc.value === "Hello, World!");
-console.log(doc.spec.hints[0].name === "text");
+console.log(output.value === "Hello, World!");
+console.log(output.spec.hints[0].name === "text");
 
 ```
 
@@ -216,7 +216,7 @@ be necessary to effectively parse the content. You may include the full type nam
 ```js
 const LYNX = require("lynx-parser");
 
-var lynx = {
+var input = {
   "value": "Hello, World!",
   "spec": {
     "hints": [ "text" ]
@@ -227,9 +227,9 @@ var options = {
   type: 'application/lynx+json;realm="http://example.com/greeting/";base="http://example.com/hello-world/"'
 };
 
-var doc = await LYNX.parse(lynx, options);
-console.log(doc.realm === "http://example.com/greeting/");
-console.log(doc.base === "http://example.com/hello-world/");
+var output = await LYNX.parse(JSON.stringify(input), options);
+console.log(output.realm === "http://example.com/greeting/");
+console.log(output.base === "http://example.com/hello-world/");
 ```
 
 ### Base URI and Document Location
@@ -240,7 +240,7 @@ is specified in neither a content type parameter nor in content.
 ```js
 const LYNX = require("lynx-parser");
 
-var lynx = {
+var input = {
   "value": "Hello, World!",
   "spec": {
     "hints": [ "text" ]
@@ -251,6 +251,6 @@ var options = {
   location: "http://example.com/hello-world/"
 };
 
-var doc = await LYNX.parse(lynx, options);
-console.log(doc.base === "http://example.com/hello-world/");
+var output = await LYNX.parse(JSON.stringify(input), options);
+console.log(output.base === "http://example.com/hello-world/");
 ```
