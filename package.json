@@ -6,7 +6,8 @@
   "scripts": {
     "test": "mocha test --compilers js:babel-register --require babel-polyfill",
     "lint": "jshint *.js --exclude-path /node_modules/**",
-    "build": "babel src -d lib"
+    "build": "babel src -d lib",
+    "install": "npm run build"
   },
   "repository": {
     "type": "git",
