@@ -1,6 +1,6 @@
 {
   "name": "lynx-parser",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A simple parser for application/lynx+json documents.",
   "main": "lib/index.js",
   "scripts": {
