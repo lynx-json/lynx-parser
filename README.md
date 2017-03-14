@@ -1,14 +1,16 @@
 Lynx Parser
 =========================================================
 
-Lynx Parser parses a string of lynx content and returns a promise for a normalized lynx document.
+Lynx Parser parses a string of lynx content and returns a promise for a 
+normalized lynx document.
 
 Structure
 ---------------------------------------------------------
 
 ### Normalization
 
-During parsing, each specified node is expanded to an object with a value and a spec, and each hint is expanded to an object with a name.
+During parsing, each specified node is expanded to an object with a value and a 
+spec.
 
 Consider the following source document:
 
@@ -55,15 +57,11 @@ Calling `LYNX.parse(source)` results in the following normalized structure:
       {
         "name": "items",
         "hints": [
-          {
-            "name": "container"
-          }
+          "container"
         ],
         "children": {
           "hints": [
-            {
-              "name": "text"
-            }
+            "text"
           ]
         }
       }
@@ -74,15 +72,11 @@ Calling `LYNX.parse(source)` results in the following normalized structure:
       "spec": {
         "name": "items",
         "hints": [
-          {
-            "name": "container"
-          }
+          "container"
         ],
         "children": {
           "hints": [
-            {
-              "name": "text"
-            }
+            "text"
           ]
         }
       },
@@ -90,9 +84,7 @@ Calling `LYNX.parse(source)` results in the following normalized structure:
         {
           "spec": {
             "hints": [
-              {
-                "name": "text"
-              }
+              "text"
             ]
           },
           "value": "one"
@@ -100,9 +92,7 @@ Calling `LYNX.parse(source)` results in the following normalized structure:
         {
           "spec": {
             "hints": [
-              {
-                "name": "text"
-              }
+              "text"
             ]
           },
           "value": "two"
@@ -110,9 +100,7 @@ Calling `LYNX.parse(source)` results in the following normalized structure:
         {
           "spec": {
             "hints": [
-              {
-                "name": "text"
-              }
+              "text"
             ]
           },
           "value": "three"

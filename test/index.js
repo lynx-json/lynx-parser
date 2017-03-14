@@ -112,31 +112,11 @@ describe("LYNX.parse", function () {
       doc.value.items.value[0].value.should.equal("one");
       doc.value.items.value[1].value.should.equal("two");
       doc.value.items.value[2].value.should.equal("three");
-      var childSpec = { hints: [ { name: "text" } ]}
+      var childSpec = { hints: [ "text" ]};
       doc.value.items.value[0].spec.should.deep.equal(childSpec);
       doc.value.items.value[1].spec.should.deep.equal(childSpec);
       doc.value.items.value[2].spec.should.deep.equal(childSpec);
       // console.log(JSON.stringify(doc, null, 2));
-      done();
-    }).catch(done);
-  });
-  
-  it("should expand each hint to an object with a name", function (done) {
-    var lynx = {
-      value: "Hello, World!",
-      spec: {
-        hints: [ "text" ]
-      }
-    };
-    
-    LYNX.parse(JSON.stringify(lynx)).then(doc => {
-      doc.spec.should.deep.equal({
-        hints: [
-          {
-            name: "text"
-          }
-        ]
-      });
       done();
     }).catch(done);
   });

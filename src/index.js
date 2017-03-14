@@ -1,7 +1,6 @@
 const util = require("util");
 const reservedKeys = [ "spec", "value", "realm", "base" ];
 const contentType = require("content-type");
-const polyfill = require("babel-polyfill");
 
 exports.parse = async (content, options) => {
   async function prepareNode(source, templateSpec) {
@@ -14,8 +13,6 @@ exports.parse = async (content, options) => {
     } else {
       node.spec = spec;
     }
-    
-    node.spec.hints = node.spec.hints.map(hint => typeof hint === "string" ? { name: hint } : hint);
     
     var value = source.value || source;
     
