@@ -1,7 +1,7 @@
 const util = require("util");
 const reservedKeys = [ "spec", "value", "realm", "base" ];
 const contentType = require("content-type");
-const polyfill = require("babel-polyfill");
+import "babel-polyfill";
 
 exports.parse = async (content, options) => {
   async function prepareNode(source, templateSpec) {
