@@ -1,6 +1,8 @@
 Lynx Parser
 =========================================================
 
+[![Build Status](https://travis-ci.org/lynx-json/lynx-parser.svg?branch=master)](https://travis-ci.org/lynx-json/lynx-parser)
+
 Lynx Parser parses a string of lynx content and returns a promise for a 
 normalized lynx document.
 
