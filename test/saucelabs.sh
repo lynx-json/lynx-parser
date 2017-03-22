@@ -31,15 +31,14 @@ do
 
     if [ -z "$failures" ]
     then
-      status="All Remote Tests Passed"
+      status="pass"
     else
-      status="Tests Failed. See Output Above."
+      status="fail"
     fi
   fi
 done
 
 curl $url'/stop'
-echo $status
 
 if [ "$status" == 'pass' ]
 then
