@@ -26,13 +26,15 @@ do
     sleep 5
   else
     failures=$(echo "$result" | jq -r '."js tests"[].result.failures' | grep '[1-9]')
+    
+    echo "$result" | jq -r '."js tests"[]'
+
     if [ -z "$failures" ]
     then
-      status="pass"
+      status="All Remote Tests Passed"
     else
-      status="fail"
+      status="Tests Failed. See Output Above."
     fi
-    echo "$completed"
   fi
 done
 

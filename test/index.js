@@ -6,10 +6,6 @@ const LYNX = require("../src");
 import "babel-polyfill";
 
 describe("LYNX.parse", function () {
-  it("should fail", function () {
-    true.should.equal(false);
-  });
-  
   it("should parse a string of lynx content", function (done) {
     var lynx = {
       value: "Hello, World!",
