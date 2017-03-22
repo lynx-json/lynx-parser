@@ -19,6 +19,7 @@ status=unknown
 while [ "$complete" != 'true' ]
 do
   result=$(curl https://saucelabs.com/rest/v1/$SAUCE_USERNAME/js-tests/status -X POST -u $SAUCE_USERNAME:$SAUCE_ACCESS_KEY -H 'Content-Type: application/json' -d "$tests")
+  echo "$result"
   complete=$(echo "$result" | jq -r '.complete')
   status=$(echo "$result" | jq -r '.status')
   echo "$complete"
