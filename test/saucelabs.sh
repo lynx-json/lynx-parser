@@ -9,33 +9,37 @@ then
   exit 0
 fi
 
-
 options='{  "platforms": [["Windows 7", "firefox", "27"],  ["Linux", "googlechrome", ""]],  "url": "'$url'", "tunnelIdentifier": "'$TRAVIS_JOB_NUMBER'",  "framework": "mocha"}';
 
 tests=$(curl https://saucelabs.com/rest/v1/$SAUCE_USERNAME/js-tests -X POST -u $SAUCE_USERNAME:$SAUCE_ACCESS_KEY -H 'Content-Type: application/json' -d "$options")
 
-complete=false
+completed=false
 status=unknown
-while [ "$complete" != 'true' ]
+while [ "$completed" != 'true' ]
 do
   result=$(curl https://saucelabs.com/rest/v1/$SAUCE_USERNAME/js-tests/status -X POST -u $SAUCE_USERNAME:$SAUCE_ACCESS_KEY -H 'Content-Type: application/json' -d "$tests")
-  echo "$result"
-  complete=$(echo "$result" | jq -r '.complete')
-  status=$(echo "$result" | jq -r '.status')
-  echo "$complete"
-  count=count+1
+  completed=$(echo "$result" | jq -r '.completed')
   
-  if [ "$complete" != 'true' ]
+  if [ "$completed" != 'true' ]
   then
     echo "Waiting for results"
     sleep 5
+  else
+    failures=$(echo "$result" | jq -r '."js tests"[].result.failures' | grep '[1-9]')
+    if [ -z "$failures" ]
+    then
+      status="pass"
+    else
+      status="fail"
+    fi
+    echo "$completed"
   fi
 done
 
 curl $url'/stop'
 echo $status
 
-if [ "$status" == 'ok' ]
+if [ "$status" == 'pass' ]
 then
   exit 0
 else
