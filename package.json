@@ -4,8 +4,7 @@
   "description": "A simple parser for application/lynx+json documents.",
   "main": "lib/index.js",
   "scripts": {
-    "test-old": "babel-node test/index-tape.js | faucet; browserify test/index-tape.js -t babelify | tap-closer | smokestack --saucelabs | faucet",
-    "test": "browserify test/index.js -t babelify > ./test/bundle.js; node test/server.js | bash test/saucelabs.sh",
+    "test": "browserify test/index.js -t babelify > ./test/bundle.js; mocha ./test/bundle.js; node test/server.js | bash test/saucelabs.sh",
     "build": "babel src -d lib",
     "prepublish": "npm run build"
   },
@@ -31,11 +30,7 @@
     "babelify": "^7.3.0",
     "browserify": "^14.1.0",
     "chai": "^3.5.0",
-    "chai-as-promised": "^6.0.0",
-    "faucet": "0.0.1",
-    "smokestack": "^3.4.1",
-    "tap-closer": "^1.0.0",
-    "tape": "^4.6.3"
+    "chai-as-promised": "^6.0.0"
   },
   "dependencies": {
     "content-type": "^1.0.2",

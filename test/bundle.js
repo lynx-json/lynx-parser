@@ -16613,6 +16613,8 @@ exports.parse = function () {
 },{"babel-polyfill":2,"content-type":37,"util":342}],344:[function(require,module,exports){
 "use strict";
 
+require("babel-polyfill");
+
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 var chai = require("chai");
@@ -16620,6 +16622,7 @@ var chaiAsPromised = require("chai-as-promised");
 var should = chai.should();
 chai.use(chaiAsPromised);
 var LYNX = require("../src");
+
 
 describe("LYNX.parse", function () {
   it("should parse a string of lynx content", function (done) {
@@ -16854,4 +16857,4 @@ describe("LYNX.parse", function () {
   });
 });
 
-},{"../src":343,"chai":7,"chai-as-promised":6}]},{},[344]);
+},{"../src":343,"babel-polyfill":2,"chai":7,"chai-as-promised":6}]},{},[344]);

@@ -3,6 +3,7 @@ const chaiAsPromised = require("chai-as-promised");
 const should = chai.should();
 chai.use(chaiAsPromised);
 const LYNX = require("../src");
+import "babel-polyfill";
 
 describe("LYNX.parse", function () {
   it("should parse a string of lynx content", function (done) {

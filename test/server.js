@@ -19,11 +19,20 @@ var server = http.createServer(function (req, res) {
     return res.end(index);
   }
   
+  if (uri === '/stop') {
+    res.end();
+    req.connection.end();
+    req.connection.destroy;
+    return server.close();
+  }
+  
   res.setHeader("content-type", "text/plain");
   res.end("404 (Not Found)");
   
-}).listen(0);
+});
 
-console.log("http://localhost:" + server.address().port);
+var runningServer = server.listen(0);
 
-return server;
+console.log("http://localhost:" + runningServer.address().port);
+
+return runningServer;
