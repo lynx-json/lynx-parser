@@ -14,6 +14,7 @@ options='{  "platforms": [
   ["Windows 7", "firefox", "51"],
   ["Windows 7", "internet explorer", "11"],
   ["Windows 7", "internet explorer", "10"],
+  ["Windows 7", "internet explorer", "9"],
   ["Linux", "googlechrome", ""]
   ],  "url": "'$url'", 
   "tunnelIdentifier": "'$TRAVIS_JOB_NUMBER'",  "framework": "mocha"}';
