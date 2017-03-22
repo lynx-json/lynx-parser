@@ -12,8 +12,8 @@ fi
 options='{  "platforms": [
   ["Windows 10", "firefox", "51"],
   ["Windows 7", "firefox", "51"],
-  ["Windows 7", "ie", "11"],
-  ["Windows 7", "ie", "10"],
+  ["Windows 7", "internet explorer", "11"],
+  ["Windows 7", "internet explorer", "10"],
   ["Linux", "googlechrome", ""]
   ],  "url": "'$url'", 
   "tunnelIdentifier": "'$TRAVIS_JOB_NUMBER'",  "framework": "mocha"}';
@@ -29,6 +29,7 @@ do
   
   if [ "$completed" != 'true' ]
   then
+    echo "$result" | jq
     echo "Waiting for results"
     sleep 5
   else
