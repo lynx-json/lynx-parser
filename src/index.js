@@ -1,5 +1,5 @@
 const util = require("util");
-const reservedKeys = [ "spec", "value", "realm", "base" ];
+const reservedKeys = [ "spec", "value", "realm", "base", "focus" ];
 const contentType = require("content-type");
 import "babel-polyfill";
 
@@ -42,5 +42,9 @@ exports.parse = async (content, options) => {
   var doc = await prepareNode(source);
   doc.realm = source.realm || type.parameters.realm;
   doc.base = source.base || type.parameters.base || options && options.location;
+  if (source.focus) {
+    doc.focus = source.focus;
+  }
+  
   return doc;
 };
