@@ -150,6 +150,71 @@ The resulting parsed document is left with its original `href` value:
 }
 ```
 
+### Document-Level Properties
+
+The document-level properties `realm`, `base`, and `focus` are left on the
+document-level value/spec pair:
+
+Consider the following document:
+
+```JSON
+{
+  "realm": "http://example.com/greeting/",
+  "base": "http://example.com/hello-world/",
+  "focus": "message",
+  "message": "Hello, World!",
+  "spec": {
+    "hints": [
+      "container"
+    ],
+    "children": [
+      {
+        "name": "message",
+        "hints": [
+          "text"
+        ]
+      }
+    ]
+  }
+}
+```
+
+The resulting parsed document is left with three document-level properties,
+`base`, `realm`, and `focus`.
+The `value` has a single property, `message`.
+
+```JSON
+{
+  "spec": {
+    "hints": [
+      "container"
+    ],
+    "children": [
+      {
+        "name": "message",
+        "hints": [
+          "text"
+        ]
+      }
+    ]
+  },
+  "value": {
+    "message": {
+      "spec": {
+        "name": "message",
+        "hints": [
+          "text"
+        ]
+      },
+      "value": "Hello, World!"
+    }
+  },
+  "realm": "http://example.com/greeting/",
+  "base": "http://example.com/hello-world/",
+  "focus": "message"
+}
+```
+
 Usage
 ---------------------------------------------------------
 

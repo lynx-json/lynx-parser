@@ -136,24 +136,30 @@ describe("LYNX.parse", function () {
     }).catch(done);
   });
   
-  it("should leave realm and base on the document and not on the value", function (done) {
+  it("should leave `realm`, `base`, and `focus` on the document and not on the value", function (done) {
     var lynx = {
       realm: "http://example.com/greeting/",
       base: "http://example.com/hello-world/",
+      focus: "message",
       message: "Hello, World!",
       spec: {
         hints: [ "container" ],
-        children: {
-          hints: [ "text" ]
-        }
+        children: [
+          {
+            name: "message",
+            hints: [ "text" ]
+          }
+        ]
       }
     };
     
     LYNX.parse(JSON.stringify(lynx)).then(doc => {
       doc.realm.should.equal("http://example.com/greeting/");
       doc.base.should.equal("http://example.com/hello-world/");
+      doc.focus.should.equal("message");
       should.not.exist(doc.value.realm);
       should.not.exist(doc.value.base);
+      should.not.exist(doc.value.focus);
       done();
     }).catch(done);
   });

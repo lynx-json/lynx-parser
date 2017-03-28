@@ -16444,7 +16444,7 @@ require("babel-polyfill");
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 var util = require("util");
-var reservedKeys = ["spec", "value", "realm", "base"];
+var reservedKeys = ["spec", "value", "realm", "base", "focus"];
 var contentType = require("content-type");
 
 
@@ -16595,9 +16595,13 @@ exports.parse = function () {
 
             doc.realm = source.realm || type.parameters.realm;
             doc.base = source.base || type.parameters.base || options && options.location;
+            if (source.focus) {
+              doc.focus = source.focus;
+            }
+
             return _context3.abrupt("return", doc);
 
-          case 8:
+          case 9:
           case "end":
             return _context3.stop();
         }
@@ -16770,24 +16774,28 @@ describe("LYNX.parse", function () {
     }).catch(done);
   });
 
-  it("should leave realm and base on the document and not on the value", function (done) {
+  it("should leave `realm`, `base`, and `focus` on the document and not on the value", function (done) {
     var lynx = {
       realm: "http://example.com/greeting/",
       base: "http://example.com/hello-world/",
+      focus: "message",
       message: "Hello, World!",
       spec: {
         hints: ["container"],
-        children: {
+        children: [{
+          name: "message",
           hints: ["text"]
-        }
+        }]
       }
     };
 
     LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
       doc.realm.should.equal("http://example.com/greeting/");
       doc.base.should.equal("http://example.com/hello-world/");
+      doc.focus.should.equal("message");
       should.not.exist(doc.value.realm);
       should.not.exist(doc.value.base);
+      should.not.exist(doc.value.focus);
       done();
     }).catch(done);
   });
