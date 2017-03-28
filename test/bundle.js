@@ -16444,7 +16444,7 @@ require("babel-polyfill");
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 var util = require("util");
-var reservedKeys = ["spec", "value", "realm", "base", "focus"];
+var reservedKeys = ["spec", "value", "realm", "base", "focus", "context"];
 var contentType = require("content-type");
 
 
@@ -16580,7 +16580,7 @@ exports.parse = function () {
       };
     }();
 
-    var type, source, doc;
+    var type, source, doc, realm, base;
     return regeneratorRuntime.wrap(function _callee2$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -16592,16 +16592,29 @@ exports.parse = function () {
 
           case 4:
             doc = _context3.sent;
+            realm = source.realm || type.parameters.realm;
 
-            doc.realm = source.realm || type.parameters.realm;
-            doc.base = source.base || type.parameters.base || options && options.location;
+            if (realm) {
+              doc.realm = realm;
+            }
+
+            base = source.base || type.parameters.base || options && options.location;
+
+            if (base) {
+              doc.base = base;
+            }
+
             if (source.focus) {
               doc.focus = source.focus;
             }
 
+            if (source.context) {
+              doc.context = source.context;
+            }
+
             return _context3.abrupt("return", doc);
 
-          case 9:
+          case 12:
           case "end":
             return _context3.stop();
         }
@@ -16779,6 +16792,7 @@ describe("LYNX.parse", function () {
       realm: "http://example.com/greeting/",
       base: "http://example.com/hello-world/",
       focus: "message",
+      context: "http://example.com/",
       message: "Hello, World!",
       spec: {
         hints: ["container"],
@@ -16793,9 +16807,11 @@ describe("LYNX.parse", function () {
       doc.realm.should.equal("http://example.com/greeting/");
       doc.base.should.equal("http://example.com/hello-world/");
       doc.focus.should.equal("message");
+      doc.context.should.equal("http://example.com/");
       should.not.exist(doc.value.realm);
       should.not.exist(doc.value.base);
       should.not.exist(doc.value.focus);
+      should.not.exist(doc.value.context);
       done();
     }).catch(done);
   });

@@ -141,6 +141,7 @@ describe("LYNX.parse", function () {
       realm: "http://example.com/greeting/",
       base: "http://example.com/hello-world/",
       focus: "message",
+      context: "http://example.com/",
       message: "Hello, World!",
       spec: {
         hints: [ "container" ],
@@ -157,9 +158,11 @@ describe("LYNX.parse", function () {
       doc.realm.should.equal("http://example.com/greeting/");
       doc.base.should.equal("http://example.com/hello-world/");
       doc.focus.should.equal("message");
+      doc.context.should.equal("http://example.com/");
       should.not.exist(doc.value.realm);
       should.not.exist(doc.value.base);
       should.not.exist(doc.value.focus);
+      should.not.exist(doc.value.context);
       done();
     }).catch(done);
   });
