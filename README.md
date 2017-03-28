@@ -152,7 +152,7 @@ The resulting parsed document is left with its original `href` value:
 
 ### Document-Level Properties
 
-The document-level properties `realm`, `base`, and `focus` are left on the
+The document-level properties `realm`, `base`, `focus`, and `context` are left on the
 document-level value/spec pair:
 
 Consider the following document:
@@ -162,6 +162,7 @@ Consider the following document:
   "realm": "http://example.com/greeting/",
   "base": "http://example.com/hello-world/",
   "focus": "message",
+  "context": "http://example.com/",
   "message": "Hello, World!",
   "spec": {
     "hints": [
@@ -179,8 +180,8 @@ Consider the following document:
 }
 ```
 
-The resulting parsed document is left with three document-level properties,
-`base`, `realm`, and `focus`.
+The resulting parsed document is left with four document-level properties,
+`base`, `realm`, `focus`, and `context`.
 The `value` has a single property, `message`.
 
 ```JSON
@@ -211,7 +212,8 @@ The `value` has a single property, `message`.
   },
   "realm": "http://example.com/greeting/",
   "base": "http://example.com/hello-world/",
-  "focus": "message"
+  "focus": "message",
+  "context": "http://example.com/"
 }
 ```
 

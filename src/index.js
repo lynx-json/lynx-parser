@@ -1,5 +1,5 @@
 const util = require("util");
-const reservedKeys = [ "spec", "value", "realm", "base", "focus" ];
+const reservedKeys = [ "spec", "value", "realm", "base", "focus", "context" ];
 const contentType = require("content-type");
 import "babel-polyfill";
 
@@ -40,10 +40,23 @@ exports.parse = async (content, options) => {
   var type = contentType.parse(options && options.type || "application/lynx+json");
   var source = JSON.parse(content);
   var doc = await prepareNode(source);
-  doc.realm = source.realm || type.parameters.realm;
-  doc.base = source.base || type.parameters.base || options && options.location;
+  
+  var realm = source.realm || type.parameters.realm;
+  if (realm) {
+    doc.realm = realm;
+  }
+  
+  var base = source.base || type.parameters.base || options && options.location;
+  if (base) {
+    doc.base = base;
+  }
+  
   if (source.focus) {
     doc.focus = source.focus;
+  }
+  
+  if (source.context) {
+    doc.context = source.context;
   }
   
   return doc;
