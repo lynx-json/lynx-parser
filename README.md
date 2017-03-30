@@ -3,7 +3,7 @@ Lynx Parser
 
 [![Build Status](https://travis-ci.org/lynx-json/lynx-parser.svg?branch=master)](https://travis-ci.org/lynx-json/lynx-parser)
 
-[![Sauce Test Status](https://saucelabs.com/buildstatus/lynx-json)](https://saucelabs.com/u/lynx-json)
+[![Sauce Test Status](https://saucelabs.com/buildstatus/lynx-json?saucy)](https://saucelabs.com/u/lynx-json)
 
 [![Sauce Browser Matrix](https://saucelabs.com/browser-matrix/lynx-json.svg)](https://saucelabs.com/u/lynx-json)
 

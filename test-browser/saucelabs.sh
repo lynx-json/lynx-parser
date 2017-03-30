@@ -11,7 +11,8 @@ else
     ["Windows 7", "firefox", "51"],
     ["Windows 7", "internet explorer", "11"],
     ["Windows 7", "internet explorer", "10"],
-    ["Linux", "googlechrome", ""]
+    ["Linux", "googlechrome", ""],
+    ["MacOS Sierra 10.12", "googlechrome", ""]
     ],  "url": "'$url'", 
     "build": "'$TRAVIS_BUILD_NUMBER'",
     "tunnelIdentifier": "'$TRAVIS_JOB_NUMBER'",  "framework": "mocha"}';
