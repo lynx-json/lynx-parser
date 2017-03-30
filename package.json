@@ -4,7 +4,9 @@
   "description": "A simple parser for application/lynx+json documents.",
   "main": "lib/index.js",
   "scripts": {
-    "test": "browserify test/index.js -t babelify > ./test/bundle.js; mocha ./test/bundle.js; node test/server.js | bash test/saucelabs.sh",
+    "test-browser": "browserify test/index.js -t babelify > ./test-browser/bundle.js; node test-browser/server.js | bash test-browser/saucelabs.sh",
+    "test-node": "mocha test --recursive --compilers js:babel-register --require babel-polyfill",
+    "test": "npm run test-node; npm run test-browser",
     "build": "babel src -d lib",
     "prepublish": "npm run build"
   },
