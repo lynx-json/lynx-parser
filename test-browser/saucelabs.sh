@@ -7,14 +7,11 @@ then
   open $url
 else
   options='{  "platforms": [
-    ["Windows 10", "firefox", ""],
-    ["Windows 10", "googlechrome", ""],
-    ["Windows 7", "firefox", ""],
+    ["Windows 10", "firefox", "51"],
+    ["Windows 7", "firefox", "51"],
     ["Windows 7", "internet explorer", "11"],
     ["Windows 7", "internet explorer", "10"],
-    ["Windows 7", "googlechrome", ""],
     ["Linux", "googlechrome", ""]
-    ["Linux", "firefox", ""]
     ],  "url": "'$url'", 
     "build": "'$TRAVIS_BUILD_NUMBER'",
     "tunnelIdentifier": "'$TRAVIS_JOB_NUMBER'",  "framework": "mocha"}';
