@@ -5,6 +5,8 @@ Lynx Parser
 
 [![Sauce Test Status](https://saucelabs.com/buildstatus/lynx-json)](https://saucelabs.com/u/lynx-json)
 
+[![Sauce Browser Matrix](https://saucelabs.com/browser-matrix/lynx-json.svg)](https://saucelabs.com/u/lynx-json)
+
 Lynx Parser parses a string of lynx content and returns a promise for a 
 normalized lynx document.
 
