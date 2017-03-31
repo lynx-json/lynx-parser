@@ -8,16 +8,14 @@ then
 else
   options='{  "platforms": [
     ["Windows 10", "firefox", ""],
-    ["Windows 10", "edge", ""],
+    ["Windows 10", "microsoftedge", ""],
     ["Windows 7", "firefox", ""],
     ["Windows 7", "internet explorer", "11"],
     ["Windows 7", "internet explorer", "10"],
     ["Linux", "googlechrome", ""],
     ["Linux", "firefox", ""],
-    ["Linux", "opera", ""],
     ["macOS 10.12", "googlechrome", ""],
     ["macOS 10.12", "firefox", ""],
-    ["macOS 10.12", "safari", ""]
     ],  "url": "'$url'", 
     "build": "'$TRAVIS_BUILD_NUMBER'",
     "tunnelIdentifier": "'$TRAVIS_JOB_NUMBER'",  "framework": "mocha"}';
