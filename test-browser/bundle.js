@@ -16488,7 +16488,7 @@ exports.parse = function () {
                 node.spec = spec;
 
               case 11:
-                value = source.value || source;
+                value = source.value === undefined ? source : source.value;
 
 
                 if (util.isArray(value)) node.value = [];else if (util.isObject(value)) node.value = {};else node.value = value;
@@ -16646,7 +16646,9 @@ describe("LYNX.parse", function () {
     var lynx = {
       value: "Hello, World!",
       spec: {
-        hints: [{ name: "text" }]
+        hints: [{
+          name: "text"
+        }]
       }
     };
 
@@ -16666,7 +16668,9 @@ describe("LYNX.parse", function () {
     };
 
     var spec = {
-      hints: [{ name: "text" }]
+      hints: [{
+        name: "text"
+      }]
     };
 
     var options = {
@@ -16711,7 +16715,9 @@ describe("LYNX.parse", function () {
     };
 
     var spec = {
-      hints: [{ name: "text" }]
+      hints: [{
+        name: "text"
+      }]
     };
 
     var options = {};
@@ -16726,10 +16732,14 @@ describe("LYNX.parse", function () {
     var lynx = {
       message: "Hello, World!",
       spec: {
-        hints: [{ name: "container" }],
+        hints: [{
+          name: "container"
+        }],
         children: [{
           name: "message",
-          hints: [{ name: "text" }]
+          hints: [{
+            name: "text"
+          }]
         }]
       }
     };
@@ -16739,8 +16749,44 @@ describe("LYNX.parse", function () {
       doc.value.message.value.should.equal("Hello, World!");
       doc.value.message.spec.should.deep.equal({
         name: "message",
-        hints: [{ name: "text" }]
+        hints: [{
+          name: "text"
+        }]
       });
+      done();
+    }).catch(done);
+  });
+
+  it("should recognize null or empty text values", function (done) {
+    var lynx = {
+      emptyValue: {
+        value: ""
+      },
+      nullValue: {
+        value: null
+      },
+      spec: {
+        hints: [{
+          name: "container"
+        }],
+        children: [{
+          name: "emptyValue",
+          hints: [{
+            name: "text"
+          }]
+        }, {
+          name: "nullValue",
+          hints: [{
+            name: "text"
+          }]
+        }]
+      }
+    };
+
+    LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
+      doc.spec.should.deep.equal(lynx.spec);
+      doc.value.emptyValue.value.should.equal("");
+      should.not.exist(doc.value.nullValue.value);
       done();
     }).catch(done);
   });
@@ -16764,7 +16810,9 @@ describe("LYNX.parse", function () {
       doc.value.items.value[0].value.should.equal("one");
       doc.value.items.value[1].value.should.equal("two");
       doc.value.items.value[2].value.should.equal("three");
-      var childSpec = { hints: ["text"] };
+      var childSpec = {
+        hints: ["text"]
+      };
       doc.value.items.value[0].spec.should.deep.equal(childSpec);
       doc.value.items.value[1].spec.should.deep.equal(childSpec);
       doc.value.items.value[2].spec.should.deep.equal(childSpec);

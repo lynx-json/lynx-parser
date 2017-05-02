@@ -8,7 +8,6 @@ then
 else
   options='{  "platforms": [
     ["Windows 10", "firefox", ""],
-    ["Windows 10", "microsoftedge", ""],
     ["Windows 7", "firefox", ""],
     ["Windows 7", "internet explorer", "11"],
     ["Windows 7", "internet explorer", "10"],
