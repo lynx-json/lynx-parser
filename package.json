@@ -1,13 +1,13 @@
 {
-  "name": "lynx-parser",
+  "name": "@lynx-json/lynx-parser",
   "version": "0.2.1",
   "description": "A simple parser for application/lynx+json documents.",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test-browser": "browserify test/index.js -t babelify > ./test-browser/bundle.js; node test-browser/server.js | bash test-browser/saucelabs.sh",
     "test-node": "mocha test --recursive --compilers js:babel-register --require babel-polyfill",
     "test": "npm run test-node; npm run test-browser",
-    "build": "babel src -d lib",
+    "build": "babel src -d dist",
     "prepublish": "npm run build"
   },
   "repository": {
@@ -17,8 +17,8 @@
   "keywords": [
     "lynx"
   ],
-  "author": "John Howes",
-  "license": "ISC",
+  "author": "lynx-json.org",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/lynx-json/lynx-parser/issues"
   },
