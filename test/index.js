@@ -1,5 +1,6 @@
 const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
+const expect = chai.expect;
 const should = chai.should();
 chai.use(chaiAsPromised);
 const LYNX = require("../src");
@@ -270,5 +271,32 @@ describe("LYNX.parse", function () {
       doc.base.should.equal("http://example.com/hello-world/");
       done();
     }).catch(done);
+  });
+  
+  it("should copy 'name' property from child spec to node spec", function () {
+    var lynx = {
+      "spec": {
+        "hints": [ "container" ],
+        "children": [
+          { "name": "foo" }
+        ]
+      },
+      "value": {
+        "foo": {
+          "spec": {
+            "hints": [ "text" ]
+          },
+          "value": "The spec for this value has a 'name' of 'foo'."
+        }
+      }
+    };
+    
+    var options = {
+      location: "http://example.com/hello-world/"
+    };
+    
+    return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
+      expect(doc.value.foo.spec.name).to.equal("foo");
+    });
   });
 });
