@@ -8,11 +8,16 @@ exports.parse = async(content, options) => {
     var node = {};
 
     var spec = source.spec || templateSpec;
+    
     if (typeof spec === "string") {
       if (!options.resolveSpecURL) throw new Error("You must provide a resolveSpecURL function as an option.");
       node.spec = await options.resolveSpecURL(spec);
     } else {
       node.spec = spec;
+    }
+    
+    if (templateSpec && typeof templateSpec === "object") {
+      node.spec = Object.assign({}, templateSpec, node.spec);
     }
 
     var value = source.value === undefined ? source : source.value;

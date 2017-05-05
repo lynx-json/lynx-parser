@@ -16439,6 +16439,8 @@ function hasOwnProperty(obj, prop) {
 },{"./support/isBuffer":341,"_process":4,"inherits":340}],343:[function(require,module,exports){
 "use strict";
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 require("babel-polyfill");
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
@@ -16488,13 +16490,18 @@ exports.parse = function () {
                 node.spec = spec;
 
               case 11:
+
+                if (templateSpec && (typeof templateSpec === "undefined" ? "undefined" : _typeof(templateSpec)) === "object") {
+                  node.spec = Object.assign({}, templateSpec, node.spec);
+                }
+
                 value = source.value === undefined ? source : source.value;
 
 
                 if (util.isArray(value)) node.value = [];else if (util.isObject(value)) node.value = {};else node.value = value;
 
                 if (!util.isObject(value)) {
-                  _context2.next = 24;
+                  _context2.next = 25;
                   break;
                 }
 
@@ -16541,33 +16548,33 @@ exports.parse = function () {
                 });
                 _context2.t0 = regeneratorRuntime.keys(value);
 
-              case 16:
+              case 17:
                 if ((_context2.t1 = _context2.t0()).done) {
-                  _context2.next = 24;
+                  _context2.next = 25;
                   break;
                 }
 
                 p = _context2.t1.value;
-                return _context2.delegateYield(_loop(p), "t2", 19);
+                return _context2.delegateYield(_loop(p), "t2", 20);
 
-              case 19:
+              case 20:
                 _ret = _context2.t2;
 
                 if (!(_ret === "continue")) {
-                  _context2.next = 22;
+                  _context2.next = 23;
                   break;
                 }
 
-                return _context2.abrupt("continue", 16);
+                return _context2.abrupt("continue", 17);
 
-              case 22:
-                _context2.next = 16;
+              case 23:
+                _context2.next = 17;
                 break;
 
-              case 24:
+              case 25:
                 return _context2.abrupt("return", node);
 
-              case 25:
+              case 26:
               case "end":
                 return _context2.stop();
             }
@@ -16636,6 +16643,7 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 var chai = require("chai");
 var chaiAsPromised = require("chai-as-promised");
+var expect = chai.expect;
 var should = chai.should();
 chai.use(chaiAsPromised);
 var LYNX = require("../src");
@@ -16957,6 +16965,32 @@ describe("LYNX.parse", function () {
       doc.base.should.equal("http://example.com/hello-world/");
       done();
     }).catch(done);
+  });
+
+  it("should copy 'name' property from child spec to node spec", function () {
+    var lynx = {
+      "spec": {
+        "hints": ["container"],
+        "children": [{ "name": "foo" }]
+      },
+      "value": {
+        "foo": {
+          "spec": {
+            "hints": ["text"]
+          },
+          "value": "The spec for this value has a 'name' of 'foo'."
+        }
+      }
+    };
+
+    var options = {
+      location: "http://example.com/hello-world/"
+    };
+
+    return LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
+      console.log(JSON.stringify(doc));
+      expect(doc.value.foo.spec.name).to.equal("foo");
+    });
   });
 });
 
