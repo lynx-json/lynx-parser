@@ -16988,7 +16988,6 @@ describe("LYNX.parse", function () {
     };
 
     return LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
-      console.log(JSON.stringify(doc));
       expect(doc.value.foo.spec.name).to.equal("foo");
     });
   });

@@ -307,29 +307,29 @@ describe("LYNX.parse", function () {
       done();
     }).catch(done);
   });
-  
+
   it("should copy 'name' property from child spec to node spec", function () {
     var lynx = {
       "spec": {
-        "hints": [ "container" ],
-        "children": [
-          { "name": "foo" }
-        ]
+        "hints": ["container"],
+        "children": [{
+          "name": "foo"
+        }]
       },
       "value": {
         "foo": {
           "spec": {
-            "hints": [ "text" ]
+            "hints": ["text"]
           },
           "value": "The spec for this value has a 'name' of 'foo'."
         }
       }
     };
-    
+
     var options = {
       location: "http://example.com/hello-world/"
     };
-    
+
     return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
       expect(doc.value.foo.spec.name).to.equal("foo");
     });
