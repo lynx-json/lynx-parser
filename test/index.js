@@ -165,6 +165,41 @@ describe("LYNX.parse", function () {
     }).catch(done);
   });
 
+  it("should allow array items to be named", function (done) {
+    var lynx = {
+      items: [
+        "one",
+        "two",
+        "three"
+      ],
+      spec: {
+        name: "itemName",
+        hints: ["container"],
+        children: [{
+          name: "items",
+          hints: ["container"],
+          children: {
+            hints: ["text"]
+          }
+        }]
+      }
+    };
+
+    LYNX.parse(JSON.stringify(lynx)).then(doc => {
+      doc.value.items.value[0].value.should.equal("one");
+      doc.value.items.value[1].value.should.equal("two");
+      doc.value.items.value[2].value.should.equal("three");
+      var childSpec = {
+        hints: ["text"]
+      };
+      doc.value.items.value[0].spec.should.deep.equal(childSpec);
+      doc.value.items.value[1].spec.should.deep.equal(childSpec);
+      doc.value.items.value[2].spec.should.deep.equal(childSpec);
+      // console.log(JSON.stringify(doc, null, 2));
+      done();
+    }).catch(done);
+  });
+
   it("should not normalize data properties", function (done) {
     var lynx = {
       href: "http://example.com",
