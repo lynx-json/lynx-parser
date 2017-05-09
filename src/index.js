@@ -8,14 +8,14 @@ exports.parse = async(content, options) => {
     var node = {};
 
     var spec = source.spec || templateSpec;
-    
+
     if (typeof spec === "string") {
       if (!options.resolveSpecURL) throw new Error("You must provide a resolveSpecURL function as an option.");
       node.spec = await options.resolveSpecURL(spec);
     } else {
       node.spec = spec;
     }
-    
+
     if (templateSpec && typeof templateSpec === "object") {
       node.spec = Object.assign({}, templateSpec, node.spec);
     }
@@ -34,7 +34,7 @@ exports.parse = async(content, options) => {
           node.spec.children.find(item => item.name === p) :
           node.spec.children;
 
-        if (spec) node.value[p] = await prepareNode(value[p], spec);
+        if (spec || util.isArray(value)) node.value[p] = await prepareNode(value[p], spec);
         else node.value[p] = value[p];
       }
     }
