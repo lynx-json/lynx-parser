@@ -26,8 +26,8 @@ describe("LYNX.parse", function () {
 
   it("should resolve a spec URL", function (done) {
     var lynx = {
-      "value": "Hello, World!",
-      "spec": "http://example.com/specs/greeting"
+      value: "Hello, World!",
+      spec: "http://example.com/specs/greeting"
     };
 
     var spec = {
@@ -51,8 +51,8 @@ describe("LYNX.parse", function () {
 
   it("should throw when resolveSpecURL is not provided", function (done) {
     var lynx = {
-      "value": "Hello, World!",
-      "spec": "http://example.com/specs/greeting"
+      value: "Hello, World!",
+      spec: "http://example.com/specs/greeting"
     };
 
     var spec = {
@@ -310,18 +310,18 @@ describe("LYNX.parse", function () {
 
   it("should copy 'name' property from child spec to node spec", function () {
     var lynx = {
-      "spec": {
-        "hints": ["container"],
-        "children": [{
-          "name": "foo"
+      spec: {
+        hints: ["container"],
+        children: [{
+          name: "foo"
         }]
       },
-      "value": {
-        "foo": {
-          "spec": {
-            "hints": ["text"]
+      value: {
+        foo: {
+          spec: {
+            hints: ["text"]
           },
-          "value": "The spec for this value has a 'name' of 'foo'."
+          value: "The spec for this value has a 'name' of 'foo'."
         }
       }
     };
@@ -332,6 +332,44 @@ describe("LYNX.parse", function () {
 
     return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
       expect(doc.value.foo.spec.name).to.equal("foo");
+    });
+  });
+
+  it("should continue processing array items when array has no children defined", function () {
+    var lynx = {
+      spec: {
+        hints: ["container"]
+      },
+      value: [{
+        spec: {
+          hints: ["container"],
+          children: [
+            { name: "foo" },
+            { name: "bar" }
+          ]
+        },
+        value: {
+          foo: {
+            spec: { hints: ["text"] },
+            value: "Foo"
+          },
+          bar: {
+            spec: { hints: ["text"] },
+            value: "Bar"
+          }
+        }
+      }]
+    };
+
+    var options = {
+      location: "http://example.com/hello-world/"
+    };
+
+    return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
+      expect(doc.value[0].value.foo.spec.name).to.equal("foo");
+      expect(doc.value[0].value.foo.value).to.equal("Foo");
+      expect(doc.value[0].value.bar.spec.name).to.equal("bar");
+      expect(doc.value[0].value.bar.value).to.equal("Bar");
     });
   });
 });
