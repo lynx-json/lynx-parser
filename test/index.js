@@ -26,6 +26,7 @@ describe("LYNX.parse", function () {
 
   it("should resolve a spec URL", function (done) {
     var lynx = {
+      base: "http://example.com/",
       value: "Hello, World!",
       spec: "http://example.com/specs/greeting"
     };

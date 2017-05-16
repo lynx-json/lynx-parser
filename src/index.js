@@ -1,6 +1,7 @@
 const util = require("util");
 const reservedKeys = ["spec", "value", "realm", "base", "focus", "context"];
 const contentType = require("content-type");
+const url = require("url");
 import "babel-polyfill";
 
 exports.parse = async(content, options) => {
@@ -11,6 +12,7 @@ exports.parse = async(content, options) => {
 
     if (typeof spec === "string") {
       if (!options.resolveSpecURL) throw new Error("You must provide a resolveSpecURL function as an option.");
+      spec = url.resolve(base, spec);
       node.spec = await options.resolveSpecURL(spec);
     } else {
       node.spec = spec;
