@@ -44,6 +44,7 @@ exports.parse = async(content, options) => {
 
   var type = contentType.parse(options && options.type || "application/lynx+json");
   var source = JSON.parse(content);
+  var base = source.base || type.parameters.base || options && options.location;
   var doc = await prepareNode(source);
 
   var realm = source.realm || type.parameters.realm;
@@ -51,7 +52,6 @@ exports.parse = async(content, options) => {
     doc.realm = realm;
   }
 
-  var base = source.base || type.parameters.base || options && options.location;
   if (base) {
     doc.base = base;
   }
