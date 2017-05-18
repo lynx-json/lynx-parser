@@ -2,7 +2,6 @@ const util = require("util");
 const reservedKeys = ["spec", "value", "realm", "base", "focus", "context"];
 const contentType = require("content-type");
 const url = require("url");
-import "babel-polyfill";
 
 exports.parse = async(content, options) => {
   async function prepareNode(source, templateSpec) {
