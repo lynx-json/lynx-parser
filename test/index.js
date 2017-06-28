@@ -38,8 +38,8 @@ describe("LYNX.parse", function () {
     };
 
     var options = {
-      resolveSpecURL: async url => {
-        if (url === lynx.spec) return spec;
+      resolveSpecURL: url => {
+        if (url === lynx.spec) return Promise.resolve(spec);
       }
     };
 

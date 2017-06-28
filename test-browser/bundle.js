@@ -518,8 +518,8 @@ function fromObject (obj) {
   }
 
   if (obj) {
-    if (ArrayBuffer.isView(obj) || 'length' in obj) {
-      if (typeof obj.length !== 'number' || isnan(obj.length)) {
+    if (isArrayBufferView(obj) || 'length' in obj) {
+      if (typeof obj.length !== 'number' || numberIsNaN(obj.length)) {
         return createBuffer(0)
       }
       return fromArrayLike(obj)
@@ -630,7 +630,7 @@ function byteLength (string, encoding) {
   if (Buffer.isBuffer(string)) {
     return string.length
   }
-  if (ArrayBuffer.isView(string) || string instanceof ArrayBuffer) {
+  if (isArrayBufferView(string) || string instanceof ArrayBuffer) {
     return string.byteLength
   }
   if (typeof string !== 'string') {
@@ -896,7 +896,7 @@ function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
     byteOffset = -0x80000000
   }
   byteOffset = +byteOffset  // Coerce to Number.
-  if (isNaN(byteOffset)) {
+  if (numberIsNaN(byteOffset)) {
     // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
     byteOffset = dir ? 0 : (buffer.length - 1)
   }
@@ -1027,7 +1027,7 @@ function hexWrite (buf, string, offset, length) {
   }
   for (var i = 0; i < length; ++i) {
     var parsed = parseInt(string.substr(i * 2, 2), 16)
-    if (isNaN(parsed)) return i
+    if (numberIsNaN(parsed)) return i
     buf[offset + i] = parsed
   }
   return i
@@ -1830,7 +1830,7 @@ var INVALID_BASE64_RE = /[^+/0-9A-Za-z-_]/g
 
 function base64clean (str) {
   // Node strips out invalid characters like \n and \t from the string, base64-js does not
-  str = stringtrim(str).replace(INVALID_BASE64_RE, '')
+  str = str.trim().replace(INVALID_BASE64_RE, '')
   // Node converts strings with length < 2 to ''
   if (str.length < 2) return ''
   // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
@@ -1838,11 +1838,6 @@ function base64clean (str) {
     str = str + '='
   }
   return str
-}
-
-function stringtrim (str) {
-  if (str.trim) return str.trim()
-  return str.replace(/^\s+|\s+$/g, '')
 }
 
 function toHex (n) {
@@ -1967,8 +1962,13 @@ function blitBuffer (src, dst, offset, length) {
   return i
 }
 
-function isnan (val) {
-  return val !== val // eslint-disable-line no-self-compare
+// Node 0.10 supports `ArrayBuffer` but lacks `ArrayBuffer.isView`
+function isArrayBufferView (obj) {
+  return (typeof ArrayBuffer.isView === 'function') && ArrayBuffer.isView(obj)
+}
+
+function numberIsNaN (obj) {
+  return obj !== obj // eslint-disable-line no-self-compare
 }
 
 },{"base64-js":3,"ieee754":335}],5:[function(require,module,exports){
@@ -14938,6 +14938,10 @@ process.off = noop;
 process.removeListener = noop;
 process.removeAllListeners = noop;
 process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
@@ -15666,7 +15670,7 @@ exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
 },{"./decode":338,"./encode":339}],341:[function(require,module,exports){
-(function (process,global){
+(function (global){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -15685,6 +15689,7 @@ exports.encode = exports.stringify = require('./encode');
   var undefined; // More compressible than void 0.
   var $Symbol = typeof Symbol === "function" ? Symbol : {};
   var iteratorSymbol = $Symbol.iterator || "@@iterator";
+  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
   var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
 
   var inModule = typeof module === "object";
@@ -15858,8 +15863,8 @@ exports.encode = exports.stringify = require('./encode');
       }
     }
 
-    if (typeof process === "object" && process.domain) {
-      invoke = process.domain.bind(invoke);
+    if (typeof global.process === "object" && global.process.domain) {
+      invoke = global.process.domain.bind(invoke);
     }
 
     var previousPromise;
@@ -15898,6 +15903,9 @@ exports.encode = exports.stringify = require('./encode');
   }
 
   defineIteratorMethods(AsyncIterator.prototype);
+  AsyncIterator.prototype[asyncIteratorSymbol] = function () {
+    return this;
+  };
   runtime.AsyncIterator = AsyncIterator;
 
   // Note that simple async functions are implemented on top of
@@ -16080,6 +16088,15 @@ exports.encode = exports.stringify = require('./encode');
   defineIteratorMethods(Gp);
 
   Gp[toStringTagSymbol] = "Generator";
+
+  // A Generator should always return itself as the iterator object when the
+  // @@iterator function is called on it. Some browsers' implementations of the
+  // iterator prototype chain incorrectly implement this, causing the Generator
+  // object to not be returned from this call. This ensures that doesn't happen.
+  // See https://github.com/facebook/regenerator/issues/274 for more details.
+  Gp[iteratorSymbol] = function() {
+    return this;
+  };
 
   Gp.toString = function() {
     return "[object Generator]";
@@ -16391,8 +16408,8 @@ exports.encode = exports.stringify = require('./encode');
   typeof self === "object" ? self : this
 );
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":336}],342:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],342:[function(require,module,exports){
 arguments[4][333][0].apply(exports,arguments)
 },{"./lib/type":343,"dup":333}],343:[function(require,module,exports){
 /*!
@@ -17909,203 +17926,104 @@ function hasOwnProperty(obj, prop) {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
 var util = require("util");
 var reservedKeys = ["spec", "value", "realm", "base", "focus", "context"];
 var contentType = require("content-type");
 var url = require("url");
 
-exports.parse = function () {
-  var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(content, options) {
-    var prepareNode = function () {
-      var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee(source, templateSpec) {
-        var _this = this;
+function matchesName(name) {
+  return function (item) {
+    return item.name === name;
+  };
+}
 
-        var node, spec, value, _loop, p, _ret;
+function assignPropertyValue(obj, property) {
+  return function (value) {
+    obj[property] = value;
+  };
+}
 
-        return regeneratorRuntime.wrap(function _callee$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                node = {};
-                spec = source && source.spec || templateSpec;
+exports.parse = function (content, options) {
+  function prepareSpec(spec) {
+    if (typeof spec === "string") {
+      if (!options.resolveSpecURL) return Promise.reject(new Error("You must provide a resolveSpecURL function as an option."));
+      spec = url.resolve(base, spec);
+      return options.resolveSpecURL(spec);
+    } else {
+      return Promise.resolve(spec);
+    }
+  }
 
-                if (!(typeof spec === "string")) {
-                  _context2.next = 11;
-                  break;
-                }
+  function prepareNode(source, templateSpec) {
+    var node = {};
+    var spec = source && source.spec || templateSpec;
 
-                if (options.resolveSpecURL) {
-                  _context2.next = 5;
-                  break;
-                }
+    function prepareValue(rspec) {
+      if (templateSpec && (typeof templateSpec === "undefined" ? "undefined" : _typeof(templateSpec)) === "object") {
+        node.spec = Object.assign({}, templateSpec, rspec);
+      } else {
+        node.spec = rspec;
+      }
 
-                throw new Error("You must provide a resolveSpecURL function as an option.");
+      var value = source === null || source.value === undefined ? source : source.value;
 
-              case 5:
-                spec = url.resolve(base, spec);
-                _context2.next = 8;
-                return options.resolveSpecURL(spec);
+      if (util.isArray(value)) node.value = [];else if (util.isObject(value)) node.value = {};else node.value = value;
 
-              case 8:
-                node.spec = _context2.sent;
-                _context2.next = 12;
-                break;
+      var childPromises = [];
 
-              case 11:
-                node.spec = spec;
+      if (util.isObject(value)) {
+        for (var p in value) {
+          if (reservedKeys.indexOf(p) !== -1) continue;
 
-              case 12:
+          var _spec = util.isArray(node.spec.children) ? node.spec.children.find(matchesName(p)) : node.spec.children;
 
-                if (templateSpec && (typeof templateSpec === "undefined" ? "undefined" : _typeof(templateSpec)) === "object") {
-                  node.spec = Object.assign({}, templateSpec, node.spec);
-                }
-
-                value = source.value === undefined ? source : source.value;
-
-
-                if (util.isArray(value)) node.value = [];else if (util.isObject(value)) node.value = {};else node.value = value;
-
-                if (!util.isObject(value)) {
-                  _context2.next = 26;
-                  break;
-                }
-
-                _loop = regeneratorRuntime.mark(function _loop(p) {
-                  var spec;
-                  return regeneratorRuntime.wrap(function _loop$(_context) {
-                    while (1) {
-                      switch (_context.prev = _context.next) {
-                        case 0:
-                          if (!(reservedKeys.indexOf(p) !== -1)) {
-                            _context.next = 2;
-                            break;
-                          }
-
-                          return _context.abrupt("return", "continue");
-
-                        case 2:
-                          spec = util.isArray(node.spec.children) ? node.spec.children.find(function (item) {
-                            return item.name === p;
-                          }) : node.spec.children;
-
-                          if (!(spec || util.isArray(value))) {
-                            _context.next = 9;
-                            break;
-                          }
-
-                          _context.next = 6;
-                          return prepareNode(value[p], spec);
-
-                        case 6:
-                          node.value[p] = _context.sent;
-                          _context.next = 10;
-                          break;
-
-                        case 9:
-                          node.value[p] = value[p];
-
-                        case 10:
-                        case "end":
-                          return _context.stop();
-                      }
-                    }
-                  }, _loop, _this);
-                });
-                _context2.t0 = regeneratorRuntime.keys(value);
-
-              case 18:
-                if ((_context2.t1 = _context2.t0()).done) {
-                  _context2.next = 26;
-                  break;
-                }
-
-                p = _context2.t1.value;
-                return _context2.delegateYield(_loop(p), "t2", 21);
-
-              case 21:
-                _ret = _context2.t2;
-
-                if (!(_ret === "continue")) {
-                  _context2.next = 24;
-                  break;
-                }
-
-                return _context2.abrupt("continue", 18);
-
-              case 24:
-                _context2.next = 18;
-                break;
-
-              case 26:
-                return _context2.abrupt("return", node);
-
-              case 27:
-              case "end":
-                return _context2.stop();
-            }
+          if (_spec || util.isArray(value)) {
+            childPromises.push(prepareNode(value[p], _spec).then(assignPropertyValue(node.value, p)));
+          } else {
+            node.value[p] = value[p];
           }
-        }, _callee, this);
-      }));
-
-      return function prepareNode(_x3, _x4) {
-        return _ref2.apply(this, arguments);
-      };
-    }();
-
-    var type, source, base, doc, realm;
-    return regeneratorRuntime.wrap(function _callee2$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            type = contentType.parse(options && options.type || "application/lynx+json");
-            source = JSON.parse(content);
-            base = source.base || type.parameters.base || options && options.location;
-            _context3.next = 5;
-            return prepareNode(source);
-
-          case 5:
-            doc = _context3.sent;
-            realm = source.realm || type.parameters.realm;
-
-            if (realm) {
-              doc.realm = realm;
-            }
-
-            if (base) {
-              doc.base = base;
-            }
-
-            if (source.focus) {
-              doc.focus = source.focus;
-            }
-
-            if (source.context) {
-              doc.context = source.context;
-            }
-
-            return _context3.abrupt("return", doc);
-
-          case 12:
-          case "end":
-            return _context3.stop();
         }
       }
-    }, _callee2, undefined);
-  }));
 
-  return function (_x, _x2) {
-    return _ref.apply(this, arguments);
-  };
-}();
+      return Promise.all(childPromises).then(function () {
+        return node;
+      });
+    }
+
+    return prepareSpec(spec).then(prepareValue);
+  }
+
+  var type = contentType.parse(options && options.type || "application/lynx+json");
+  var source = JSON.parse(content);
+  var base = source.base || type.parameters.base || options && options.location;
+
+  return prepareNode(source).then(function (doc) {
+    var realm = source.realm || type.parameters.realm;
+
+    if (realm) {
+      doc.realm = realm;
+    }
+
+    if (base) {
+      doc.base = base;
+    }
+
+    if (source.focus) {
+      doc.focus = source.focus;
+    }
+
+    if (source.context) {
+      doc.context = source.context;
+    }
+
+    return doc;
+  });
+};
 
 },{"content-type":36,"url":344,"util":348}],350:[function(require,module,exports){
 "use strict";
 
 require("babel-polyfill");
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 var chai = require("chai");
 var chaiAsPromised = require("chai-as-promised");
@@ -18134,8 +18052,6 @@ describe("LYNX.parse", function () {
   });
 
   it("should resolve a spec URL", function (done) {
-    var _this = this;
-
     var lynx = {
       base: "http://example.com/",
       value: "Hello, World!",
@@ -18149,31 +18065,9 @@ describe("LYNX.parse", function () {
     };
 
     var options = {
-      resolveSpecURL: function () {
-        var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(url) {
-          return regeneratorRuntime.wrap(function _callee$(_context) {
-            while (1) {
-              switch (_context.prev = _context.next) {
-                case 0:
-                  if (!(url === lynx.spec)) {
-                    _context.next = 2;
-                    break;
-                  }
-
-                  return _context.abrupt("return", spec);
-
-                case 2:
-                case "end":
-                  return _context.stop();
-              }
-            }
-          }, _callee, _this);
-        }));
-
-        return function resolveSpecURL(_x) {
-          return _ref.apply(this, arguments);
-        };
-      }()
+      resolveSpecURL: function resolveSpecURL(url) {
+        if (url === lynx.spec) return Promise.resolve(spec);
+      }
     };
 
     LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
