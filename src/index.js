@@ -1,5 +1,6 @@
 const util = require("util");
 const reservedKeys = ["spec", "value", "realm", "base", "focus", "context"];
+const preservedKeysForEmbedments = ["realm", "base", "focus", "context"];
 const contentType = require("content-type");
 const url = require("url");
 
@@ -12,6 +13,7 @@ function matchesName(name) {
 function assignPropertyValue(obj, property) {
   return function (value) {
     obj[property] = value;
+    return value;
   };
 }
 
@@ -59,6 +61,13 @@ exports.parse = function (content, options) {
                 .then(assignPropertyValue(node.value, p))
             );
           }
+          else if (p === "data" && value[p] !== null && typeof value[p] === "object" && value.type && value.type.indexOf("application/lynx+json") > -1) {
+            childPromises.push(
+              prepareNode(value[p])
+                .then(assignPropertyValue(node.value, p))
+                .then(appendEmbedment(value[p]))
+            );
+          }
           else {
             node.value[p] = value[p];
           }
@@ -74,29 +83,47 @@ exports.parse = function (content, options) {
     return prepareSpec(spec).then(prepareValue);
   }
   
-  var type = contentType.parse(options && options.type || "application/lynx+json");
-  var source = JSON.parse(content);
-  var base = source.base || type.parameters.base || options && options.location;
+  function appendEmbedment(rawValue) {
+    return function (embedment) {
+      embedment.embedded = true;
+      
+      preservedKeysForEmbedments.forEach(function (p) {
+        if (p in rawValue) embedment[p] = rawValue[p];
+      });
+      
+      embedments.push(embedment);
+      return embedment;
+    };
+  }
   
-  return prepareNode(source).then(function (doc) {
-    var realm = source.realm || type.parameters.realm;
-    
+  var embedments = [];
+  var type = contentType.parse(options && options.type || "application/lynx+json");
+  var rawDocument = JSON.parse(content);
+  var base = rawDocument.base || type.parameters.base || options && options.location;
+  var realm = rawDocument.realm || type.parameters.realm;
+  
+  function assignDocumentProperties(doc) {
     if (realm) {
-      doc.realm = realm;
+      doc.realm = doc.realm || realm;
     }
 
     if (base) {
-      doc.base = base;
+      doc.base = doc.base || base;
     }
 
-    if (source.focus) {
-      doc.focus = source.focus;
+    if (!doc.embedded && rawDocument.context) {
+      doc.context = rawDocument.context;
     }
-
-    if (source.context) {
-      doc.context = source.context;
+    
+    if (!doc.embedded && rawDocument.focus) {
+      doc.focus = rawDocument.focus;
     }
 
     return doc;
+  }
+
+  return prepareNode(rawDocument).then(function (doc) {
+    embedments.forEach(assignDocumentProperties);
+    return assignDocumentProperties(doc);
   });
 };
