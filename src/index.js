@@ -68,6 +68,12 @@ exports.parse = function (content, options) {
                 .then(appendEmbedment(value[p]))
             );
           }
+          else if (p === "sources" && util.isArray(value[p])) {
+            childPromises.push(
+              Promise.all(value.sources.map(prepareNode))
+                .then(assignPropertyValue(node.value, p))
+            );
+          }
           else {
             node.value[p] = value[p];
           }

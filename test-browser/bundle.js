@@ -17928,6 +17928,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var util = require("util");
 var reservedKeys = ["spec", "value", "realm", "base", "focus", "context"];
+var preservedKeysForEmbedments = ["realm", "base", "focus", "context"];
 var contentType = require("content-type");
 var url = require("url");
 
@@ -17940,6 +17941,7 @@ function matchesName(name) {
 function assignPropertyValue(obj, property) {
   return function (value) {
     obj[property] = value;
+    return value;
   };
 }
 
@@ -17979,6 +17981,10 @@ exports.parse = function (content, options) {
 
           if (_spec || util.isArray(value)) {
             childPromises.push(prepareNode(value[p], _spec).then(assignPropertyValue(node.value, p)));
+          } else if (p === "data" && value[p] !== null && _typeof(value[p]) === "object" && value.type && value.type.indexOf("application/lynx+json") > -1) {
+            childPromises.push(prepareNode(value[p]).then(assignPropertyValue(node.value, p)).then(appendEmbedment(value[p])));
+          } else if (p === "sources" && util.isArray(value[p])) {
+            childPromises.push(Promise.all(value.sources.map(prepareNode)).then(assignPropertyValue(node.value, p)));
           } else {
             node.value[p] = value[p];
           }
@@ -17993,30 +17999,48 @@ exports.parse = function (content, options) {
     return prepareSpec(spec).then(prepareValue);
   }
 
+  function appendEmbedment(rawValue) {
+    return function (embedment) {
+      embedment.embedded = true;
+
+      preservedKeysForEmbedments.forEach(function (p) {
+        if (p in rawValue) embedment[p] = rawValue[p];
+      });
+
+      embedments.push(embedment);
+      return embedment;
+    };
+  }
+
+  var embedments = [];
   var type = contentType.parse(options && options.type || "application/lynx+json");
-  var source = JSON.parse(content);
-  var base = source.base || type.parameters.base || options && options.location;
+  var rawDocument = JSON.parse(content);
+  var base = rawDocument.base || type.parameters.base || options && options.location;
+  var realm = rawDocument.realm || type.parameters.realm;
 
-  return prepareNode(source).then(function (doc) {
-    var realm = source.realm || type.parameters.realm;
-
+  function assignDocumentProperties(doc) {
     if (realm) {
-      doc.realm = realm;
+      doc.realm = doc.realm || realm;
     }
 
     if (base) {
-      doc.base = base;
+      doc.base = doc.base || base;
     }
 
-    if (source.focus) {
-      doc.focus = source.focus;
+    if (!doc.embedded && rawDocument.context) {
+      doc.context = rawDocument.context;
     }
 
-    if (source.context) {
-      doc.context = source.context;
+    if (!doc.embedded && rawDocument.focus) {
+      doc.focus = rawDocument.focus;
     }
 
     return doc;
+  }
+
+  return prepareNode(rawDocument).then(function (doc) {
+    embedments.forEach(assignDocumentProperties);
+    return assignDocumentProperties(doc);
   });
 };
 
@@ -18034,7 +18058,7 @@ var LYNX = require("../src");
 
 
 describe("LYNX.parse", function () {
-  it("should parse a string of lynx content", function (done) {
+  it("should parse a string of lynx content", function () {
     var lynx = {
       value: "Hello, World!",
       spec: {
@@ -18044,14 +18068,13 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
+    return LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
       doc.value.should.equal(lynx.value);
       doc.spec.should.deep.equal(lynx.spec);
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should resolve a spec URL", function (done) {
+  it("should resolve a spec URL", function () {
     var lynx = {
       base: "http://example.com/",
       value: "Hello, World!",
@@ -18070,14 +18093,13 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
+    return LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
       doc.value.should.equal(lynx.value);
       doc.spec.should.deep.equal(spec);
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should throw when resolveSpecURL is not provided", function (done) {
+  it("should throw when resolveSpecURL is not provided", function () {
     var lynx = {
       value: "Hello, World!",
       spec: "http://example.com/specs/greeting"
@@ -18091,13 +18113,12 @@ describe("LYNX.parse", function () {
 
     var options = {};
 
-    LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {}).catch(function (err) {
-      err.message.should.equal("You must provide a resolveSpecURL function as an option.");
-      done();
+    return LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {}).catch(function (err) {
+      expect(err.message).to.equal("You must provide a resolveSpecURL function as an option.");
     });
   });
 
-  it("should expand each node to a value/spec pair", function (done) {
+  it("should expand each node to a value/spec pair", function () {
     var lynx = {
       message: "Hello, World!",
       spec: {
@@ -18113,7 +18134,7 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
+    return LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
       doc.spec.should.deep.equal(lynx.spec);
       doc.value.message.value.should.equal("Hello, World!");
       doc.value.message.spec.should.deep.equal({
@@ -18122,11 +18143,10 @@ describe("LYNX.parse", function () {
           name: "text"
         }]
       });
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should recognize null or empty text values", function (done) {
+  it("should recognize null or empty text values", function () {
     var lynx = {
       emptyValue: {
         value: ""
@@ -18152,15 +18172,14 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
+    return LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
       doc.spec.should.deep.equal(lynx.spec);
       doc.value.emptyValue.value.should.equal("");
       should.not.exist(doc.value.nullValue.value);
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should include a spec for each item in an array", function (done) {
+  it("should include a spec for each item in an array", function () {
     var lynx = {
       items: ["one", "two", "three"],
       spec: {
@@ -18175,7 +18194,7 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
+    return LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
       doc.value.items.value[0].value.should.equal("one");
       doc.value.items.value[1].value.should.equal("two");
       doc.value.items.value[2].value.should.equal("three");
@@ -18185,12 +18204,10 @@ describe("LYNX.parse", function () {
       doc.value.items.value[0].spec.should.deep.equal(childSpec);
       doc.value.items.value[1].spec.should.deep.equal(childSpec);
       doc.value.items.value[2].spec.should.deep.equal(childSpec);
-      // console.log(JSON.stringify(doc, null, 2));
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should allow array items to be named", function (done) {
+  it("should allow array items to be named", function () {
     var lynx = {
       items: ["one", "two", "three"],
       spec: {
@@ -18206,7 +18223,7 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
+    return LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
       doc.value.items.value[0].value.should.equal("one");
       doc.value.items.value[1].value.should.equal("two");
       doc.value.items.value[2].value.should.equal("three");
@@ -18216,12 +18233,10 @@ describe("LYNX.parse", function () {
       doc.value.items.value[0].spec.should.deep.equal(childSpec);
       doc.value.items.value[1].spec.should.deep.equal(childSpec);
       doc.value.items.value[2].spec.should.deep.equal(childSpec);
-      // console.log(JSON.stringify(doc, null, 2));
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should not normalize data properties", function (done) {
+  it("should not normalize data properties", function () {
     var lynx = {
       href: "http://example.com",
       spec: {
@@ -18229,13 +18244,12 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
+    return LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
       doc.value.href.should.equal("http://example.com");
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should leave `realm`, `base`, and `focus` on the document and not on the value", function (done) {
+  it("should leave `realm`, `base`, and `focus` on the document and not on the value", function () {
     var lynx = {
       realm: "http://example.com/greeting/",
       base: "http://example.com/hello-world/",
@@ -18251,7 +18265,7 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
+    return LYNX.parse(JSON.stringify(lynx)).then(function (doc) {
       doc.realm.should.equal("http://example.com/greeting/");
       doc.base.should.equal("http://example.com/hello-world/");
       doc.focus.should.equal("message");
@@ -18260,11 +18274,10 @@ describe("LYNX.parse", function () {
       should.not.exist(doc.value.base);
       should.not.exist(doc.value.focus);
       should.not.exist(doc.value.context);
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should copy type parameters realm and base to the parsed document", function (done) {
+  it("should copy type parameters realm and base to the parsed document", function () {
     var lynx = {
       value: "Hello, World!",
       spec: {
@@ -18276,14 +18289,13 @@ describe("LYNX.parse", function () {
       type: 'application/lynx+json;realm="http://example.com/greeting/";base="http://example.com/hello-world/"'
     };
 
-    LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
+    return LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
       doc.realm.should.equal("http://example.com/greeting/");
       doc.base.should.equal("http://example.com/hello-world/");
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should prioritize realm and base defined in content", function (done) {
+  it("should prioritize realm and base defined in content", function () {
     var lynx = {
       realm: "http://example.com/greeting/in-content/",
       base: "http://example.com/hello-world/in-content/",
@@ -18300,14 +18312,13 @@ describe("LYNX.parse", function () {
       type: 'application/lynx+json;realm="http://example.com/greeting/";base="http://example.com/hello-world/"'
     };
 
-    LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
+    return LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
       doc.realm.should.equal("http://example.com/greeting/in-content/");
       doc.base.should.equal("http://example.com/hello-world/in-content/");
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should fall back to a base at the document location", function (done) {
+  it("should fall back to a base at the document location", function () {
     var lynx = {
       message: "Hello, World!",
       spec: {
@@ -18322,10 +18333,9 @@ describe("LYNX.parse", function () {
       location: "http://example.com/hello-world/"
     };
 
-    LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
+    return LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
       doc.base.should.equal("http://example.com/hello-world/");
-      done();
-    }).catch(done);
+    });
   });
 
   it("should copy 'name' property from child spec to node spec", function () {
@@ -18387,6 +18397,60 @@ describe("LYNX.parse", function () {
       expect(doc.value[0].value.foo.value).to.equal("Foo");
       expect(doc.value[0].value.bar.spec.name).to.equal("bar");
       expect(doc.value[0].value.bar.value).to.equal("Bar");
+    });
+  });
+
+  it("should parse 'data' property for Lynx object value", function () {
+    var lynx = {
+      spec: {
+        hints: ["content"]
+      },
+      type: "application/lynx+json",
+      data: {
+        spec: {
+          hints: ["container"],
+          children: {
+            hints: ["text"]
+          }
+        },
+        value: ["One", "Two", "Three"]
+      }
+    };
+
+    var options = {
+      location: "http://example.com/hello-world/"
+    };
+
+    return LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
+      var embeddedDocument = doc.value.data;
+      expect(embeddedDocument.value.length).to.equal(3);
+      expect(embeddedDocument.value[0].spec.hints[0]).to.equal("text");
+      expect(embeddedDocument.value[0].value).to.equal("One");
+    });
+  });
+
+  it("should parse 'sources' property", function () {
+    var specForContent = JSON.stringify({ hints: ["content"] });
+
+    var lynx = {
+      spec: JSON.parse(specForContent),
+      src: "/foo",
+      sources: [{
+        spec: JSON.parse(specForContent),
+        media: "http://example.com/media-1",
+        src: "/content-for-media-1"
+      }]
+    };
+
+    var options = {
+      location: "http://example.com/hello-world/"
+    };
+
+    return LYNX.parse(JSON.stringify(lynx), options).then(function (doc) {
+      expect(doc.value.sources.length).to.equal(1);
+      expect(doc.value.sources[0].spec.hints[0]).to.equal("content");
+      expect(doc.value.sources[0].value.src).to.equal("/content-for-media-1");
+      expect(doc.value.sources[0].value.media).to.equal("http://example.com/media-1");
     });
   });
 });
