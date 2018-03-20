@@ -7,7 +7,7 @@ const LYNX = require("../src");
 import "babel-polyfill";
 
 describe("LYNX.parse", function () {
-  it("should parse a string of lynx content", function (done) {
+  it("should parse a string of lynx content", function () {
     var lynx = {
       value: "Hello, World!",
       spec: {
@@ -17,14 +17,13 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(doc => {
+    return LYNX.parse(JSON.stringify(lynx)).then(doc => {
       doc.value.should.equal(lynx.value);
       doc.spec.should.deep.equal(lynx.spec);
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should resolve a spec URL", function (done) {
+  it("should resolve a spec URL", function () {
     var lynx = {
       base: "http://example.com/",
       value: "Hello, World!",
@@ -43,14 +42,13 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx), options).then(doc => {
+    return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
       doc.value.should.equal(lynx.value);
       doc.spec.should.deep.equal(spec);
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should throw when resolveSpecURL is not provided", function (done) {
+  it("should throw when resolveSpecURL is not provided", function () {
     var lynx = {
       value: "Hello, World!",
       spec: "http://example.com/specs/greeting"
@@ -64,13 +62,14 @@ describe("LYNX.parse", function () {
 
     var options = {};
 
-    LYNX.parse(JSON.stringify(lynx), options).then(doc => {}).catch(err => {
-      err.message.should.equal("You must provide a resolveSpecURL function as an option.");
-      done();
-    });
+    return LYNX.parse(JSON.stringify(lynx), options)
+      .then(doc => {})
+      .catch(err => {
+        expect(err.message).to.equal("You must provide a resolveSpecURL function as an option.");
+      });
   });
 
-  it("should expand each node to a value/spec pair", function (done) {
+  it("should expand each node to a value/spec pair", function () {
     var lynx = {
       message: "Hello, World!",
       spec: {
@@ -86,7 +85,7 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(doc => {
+    return LYNX.parse(JSON.stringify(lynx)).then(doc => {
       doc.spec.should.deep.equal(lynx.spec);
       doc.value.message.value.should.equal("Hello, World!");
       doc.value.message.spec.should.deep.equal({
@@ -95,11 +94,10 @@ describe("LYNX.parse", function () {
           name: "text"
         }]
       });
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should recognize null or empty text values", function (done) {
+  it("should recognize null or empty text values", function () {
     var lynx = {
       emptyValue: {
         value: ""
@@ -125,15 +123,14 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(doc => {
+    return LYNX.parse(JSON.stringify(lynx)).then(doc => {
       doc.spec.should.deep.equal(lynx.spec);
       doc.value.emptyValue.value.should.equal("");
       should.not.exist(doc.value.nullValue.value);
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should include a spec for each item in an array", function (done) {
+  it("should include a spec for each item in an array", function () {
     var lynx = {
       items: [
         "one",
@@ -152,7 +149,7 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(doc => {
+    return LYNX.parse(JSON.stringify(lynx)).then(doc => {
       doc.value.items.value[0].value.should.equal("one");
       doc.value.items.value[1].value.should.equal("two");
       doc.value.items.value[2].value.should.equal("three");
@@ -162,12 +159,10 @@ describe("LYNX.parse", function () {
       doc.value.items.value[0].spec.should.deep.equal(childSpec);
       doc.value.items.value[1].spec.should.deep.equal(childSpec);
       doc.value.items.value[2].spec.should.deep.equal(childSpec);
-      // console.log(JSON.stringify(doc, null, 2));
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should allow array items to be named", function (done) {
+  it("should allow array items to be named", function () {
     var lynx = {
       items: [
         "one",
@@ -187,7 +182,7 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(doc => {
+    return LYNX.parse(JSON.stringify(lynx)).then(doc => {
       doc.value.items.value[0].value.should.equal("one");
       doc.value.items.value[1].value.should.equal("two");
       doc.value.items.value[2].value.should.equal("three");
@@ -197,12 +192,10 @@ describe("LYNX.parse", function () {
       doc.value.items.value[0].spec.should.deep.equal(childSpec);
       doc.value.items.value[1].spec.should.deep.equal(childSpec);
       doc.value.items.value[2].spec.should.deep.equal(childSpec);
-      // console.log(JSON.stringify(doc, null, 2));
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should not normalize data properties", function (done) {
+  it("should not normalize data properties", function () {
     var lynx = {
       href: "http://example.com",
       spec: {
@@ -210,13 +203,12 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(doc => {
+    return LYNX.parse(JSON.stringify(lynx)).then(doc => {
       doc.value.href.should.equal("http://example.com");
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should leave `realm`, `base`, and `focus` on the document and not on the value", function (done) {
+  it("should leave `realm`, `base`, and `focus` on the document and not on the value", function () {
     var lynx = {
       realm: "http://example.com/greeting/",
       base: "http://example.com/hello-world/",
@@ -232,7 +224,7 @@ describe("LYNX.parse", function () {
       }
     };
 
-    LYNX.parse(JSON.stringify(lynx)).then(doc => {
+    return LYNX.parse(JSON.stringify(lynx)).then(doc => {
       doc.realm.should.equal("http://example.com/greeting/");
       doc.base.should.equal("http://example.com/hello-world/");
       doc.focus.should.equal("message");
@@ -241,11 +233,10 @@ describe("LYNX.parse", function () {
       should.not.exist(doc.value.base);
       should.not.exist(doc.value.focus);
       should.not.exist(doc.value.context);
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should copy type parameters realm and base to the parsed document", function (done) {
+  it("should copy type parameters realm and base to the parsed document", function () {
     var lynx = {
       value: "Hello, World!",
       spec: {
@@ -257,14 +248,13 @@ describe("LYNX.parse", function () {
       type: 'application/lynx+json;realm="http://example.com/greeting/";base="http://example.com/hello-world/"'
     };
 
-    LYNX.parse(JSON.stringify(lynx), options).then(doc => {
+    return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
       doc.realm.should.equal("http://example.com/greeting/");
       doc.base.should.equal("http://example.com/hello-world/");
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should prioritize realm and base defined in content", function (done) {
+  it("should prioritize realm and base defined in content", function () {
     var lynx = {
       realm: "http://example.com/greeting/in-content/",
       base: "http://example.com/hello-world/in-content/",
@@ -281,14 +271,13 @@ describe("LYNX.parse", function () {
       type: 'application/lynx+json;realm="http://example.com/greeting/";base="http://example.com/hello-world/"'
     };
 
-    LYNX.parse(JSON.stringify(lynx), options).then(doc => {
+    return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
       doc.realm.should.equal("http://example.com/greeting/in-content/");
       doc.base.should.equal("http://example.com/hello-world/in-content/");
-      done();
-    }).catch(done);
+    });
   });
 
-  it("should fall back to a base at the document location", function (done) {
+  it("should fall back to a base at the document location", function () {
     var lynx = {
       message: "Hello, World!",
       spec: {
@@ -303,10 +292,9 @@ describe("LYNX.parse", function () {
       location: "http://example.com/hello-world/"
     };
 
-    LYNX.parse(JSON.stringify(lynx), options).then(doc => {
+    return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
       doc.base.should.equal("http://example.com/hello-world/");
-      done();
-    }).catch(done);
+    });
   });
 
   it("should copy 'name' property from child spec to node spec", function () {
@@ -334,8 +322,8 @@ describe("LYNX.parse", function () {
     return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
       expect(doc.value.foo.spec.name).to.equal("foo");
     });
-  });
-
+  });  
+  
   it("should continue processing array items when array has no children defined", function () {
     var lynx = {
       spec: {
@@ -371,6 +359,66 @@ describe("LYNX.parse", function () {
       expect(doc.value[0].value.foo.value).to.equal("Foo");
       expect(doc.value[0].value.bar.spec.name).to.equal("bar");
       expect(doc.value[0].value.bar.value).to.equal("Bar");
+    });
+  });
+  
+  it("should parse 'data' property for Lynx object value", function () {
+    var lynx = {
+      spec: {
+        hints: ["content"]
+      },
+      type: "application/lynx+json",
+      data: {
+        spec: {
+          hints: ["container"],
+          children: {
+            hints: ["text"]
+          }
+        },
+        value: [
+          "One",
+          "Two",
+          "Three"
+        ]
+      }
+    };
+
+    var options = {
+      location: "http://example.com/hello-world/"
+    };
+
+    return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
+      var embeddedDocument = doc.value.data;
+      expect(embeddedDocument.value.length).to.equal(3);
+      expect(embeddedDocument.value[0].spec.hints[0]).to.equal("text");
+      expect(embeddedDocument.value[0].value).to.equal("One");
+    });
+  });
+  
+  it("should parse 'sources' property", function () {
+    var specForContent = JSON.stringify({ hints: ["content"] });
+    
+    var lynx = {
+      spec: JSON.parse(specForContent),
+      src: "/foo",
+      sources: [
+        {
+          spec: JSON.parse(specForContent),
+          media: "http://example.com/media-1",
+          src: "/content-for-media-1"
+        }
+      ]
+    };
+
+    var options = {
+      location: "http://example.com/hello-world/"
+    };
+
+    return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
+      expect(doc.value.sources.length).to.equal(1);
+      expect(doc.value.sources[0].spec.hints[0]).to.equal("content");
+      expect(doc.value.sources[0].value.src).to.equal("/content-for-media-1");
+      expect(doc.value.sources[0].value.media).to.equal("http://example.com/media-1");
     });
   });
 });
