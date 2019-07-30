@@ -322,8 +322,8 @@ describe("LYNX.parse", function () {
     return LYNX.parse(JSON.stringify(lynx), options).then(doc => {
       expect(doc.value.foo.spec.name).to.equal("foo");
     });
-  });  
-  
+  });
+
   it("should continue processing array items when array has no children defined", function () {
     var lynx = {
       spec: {
@@ -361,7 +361,7 @@ describe("LYNX.parse", function () {
       expect(doc.value[0].value.bar.value).to.equal("Bar");
     });
   });
-  
+
   it("should parse 'data' property for Lynx object value", function () {
     var lynx = {
       spec: {
@@ -394,10 +394,10 @@ describe("LYNX.parse", function () {
       expect(embeddedDocument.value[0].value).to.equal("One");
     });
   });
-  
+
   it("should parse 'sources' property", function () {
     var specForContent = JSON.stringify({ hints: ["content"] });
-    
+
     var lynx = {
       spec: JSON.parse(specForContent),
       src: "/foo",
@@ -420,5 +420,15 @@ describe("LYNX.parse", function () {
       expect(doc.value.sources[0].value.src).to.equal("/content-for-media-1");
       expect(doc.value.sources[0].value.media).to.equal("http://example.com/media-1");
     });
+  });
+
+  it("should reject promise on parse error", function () {
+    var content = '<html><body><p>Hello, World!</p></body></html>';
+    var options = {
+      location: "http://example.com/hello-world/"
+    };
+
+    var promise = LYNX.parse(content, options);
+    return promise.should.be.rejected;
   });
 });

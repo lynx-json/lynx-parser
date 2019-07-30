@@ -27,26 +27,26 @@ exports.parse = function (content, options) {
       return Promise.resolve(spec);
     }
   }
-  
+
   function prepareNode(source, templateSpec) {
     var node = {};
     var spec = (source && source.spec) || templateSpec;
-    
+
     function prepareValue(rspec) {
       if (templateSpec && typeof templateSpec === "object") {
         node.spec = Object.assign({}, templateSpec, rspec);
       } else {
         node.spec = rspec;
       }
-      
+
       var value = source === null || source.value === undefined ? source : source.value;
-      
+
       if (util.isArray(value)) node.value = [];
       else if (util.isObject(value)) node.value = {};
       else node.value = value;
-      
+
       var childPromises = [];
-      
+
       if (util.isObject(value)) {
         for (let p in value) {
           if (reservedKeys.indexOf(p) !== -1) continue;
@@ -79,57 +79,62 @@ exports.parse = function (content, options) {
           }
         }
       }
-      
+
       return Promise.all(childPromises)
         .then(function () {
           return node;
         });
     }
-    
+
     return prepareSpec(spec).then(prepareValue);
   }
-  
+
   function appendEmbedment(rawValue) {
     return function (embedment) {
       embedment.embedded = true;
-      
+
       preservedKeysForEmbedments.forEach(function (p) {
         if (p in rawValue) embedment[p] = rawValue[p];
       });
-      
+
       embedments.push(embedment);
       return embedment;
     };
   }
-  
-  var embedments = [];
-  var type = contentType.parse(options && options.type || "application/lynx+json");
-  var rawDocument = JSON.parse(content);
-  var base = rawDocument.base || type.parameters.base || options && options.location;
-  var realm = rawDocument.realm || type.parameters.realm;
-  
-  function assignDocumentProperties(doc) {
-    if (realm) {
-      doc.realm = doc.realm || realm;
+
+  try {
+    var embedments = [];
+    var type = contentType.parse(options && options.type || "application/lynx+json");
+    var rawDocument = JSON.parse(content);
+    var base = rawDocument.base || type.parameters.base || options && options.location;
+    var realm = rawDocument.realm || type.parameters.realm;
+
+    function assignDocumentProperties(doc) {
+      if (realm) {
+        doc.realm = doc.realm || realm;
+      }
+
+      if (base) {
+        doc.base = doc.base || base;
+      }
+
+      if (!doc.embedded && rawDocument.context) {
+        doc.context = rawDocument.context;
+      }
+
+      if (!doc.embedded && rawDocument.focus) {
+        doc.focus = rawDocument.focus;
+      }
+
+      return doc;
     }
 
-    if (base) {
-      doc.base = doc.base || base;
-    }
-
-    if (!doc.embedded && rawDocument.context) {
-      doc.context = rawDocument.context;
-    }
-    
-    if (!doc.embedded && rawDocument.focus) {
-      doc.focus = rawDocument.focus;
-    }
-
-    return doc;
+    return prepareNode(rawDocument)
+      .then(function (doc) {
+        embedments.forEach(assignDocumentProperties);
+        return assignDocumentProperties(doc);
+      });
+  } catch (e) {
+    return Promise.reject(e);  
   }
-
-  return prepareNode(rawDocument).then(function (doc) {
-    embedments.forEach(assignDocumentProperties);
-    return assignDocumentProperties(doc);
-  });
 };
